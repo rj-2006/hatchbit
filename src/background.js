@@ -1,57 +1,72 @@
 const init_data = {
-    activePokemon : "Pikachu",
-    stats : {
-        level : 1,
-        xp : 0,
+    activePokemon: "Pikachu",
+    stats: {
+        level: 1,
+        xp: 0,
         xpToNextLevel: 50
     }
 };
 
-chrome.runtime.onInstalled.addListener( ()=> {
-    chrome.storage.local.set({pokedata: init_data});
-    console.log("Initialized local storage for Pokebit.")
-})
-// Creating the alarm
+// 1. Setup on Install
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.storage.local.set({ pokedata: init_data });
+    console.log("Initialized local storage for Pokebit.");
+});
+
+// 2. Alarm Listener
 chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === "pomotimer"){
+    if (alarm.name === "pomotimer") {
         handleTimerComplete();
     }
 });
-//Starting the Pomodoro
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) =>{
-    if (message.command === "startTimer"){
-        chrome.alarms.create("pomotimer", {delayInMinutes: message.minutes});
 
+// 3. Message Listener (Communication from React)
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.command === "startTimer") {
+        // Create the alarm
+        chrome.alarms.create("pomotimer", { delayInMinutes: message.minutes });
         console.log(`Timer started for ${message.minutes} minutes.`);
-        sendResponse({status: "timer_start"});
+        
+        // Let the React UI know we succeeded
+        sendResponse({ status: "timer_start" });
     }
+    // Required for async sendResponse
+    return true; 
 });
 
+// 4. The Logic Engine
 async function handleTimerComplete() {
     const result = await chrome.storage.local.get(["pokedata"]);
-    if(!result.pokedata) return;
+    if (!result.pokedata) return;
 
-    let { stats, activePokemon} = result.pokedata;
+    // Extracting nested data
+    let { stats, activePokemon } = result.pokedata;
 
+    // Add XP
     stats.xp += 50;
 
-    if (stats.xp >= xpToNextLevel){
+    // FIXED: Accessing property from stats object correctly
+    if (stats.xp >= stats.xpToNextLevel) {
         stats.level += 1;
         stats.xp = 0;
+        // Increase difficulty for next level
         stats.xpToNextLevel = Math.floor(stats.xpToNextLevel * 1.75);
 
-        showNotification("Level Up!", `${activePokemon} reached level ${stats.level}`);
-    }else{
-        showNotification("Congrats on finishing the pomodoro session!");
+        showNotification("Level Up!", `${activePokemon} reached level ${stats.level}!`);
+    } else {
+        // FIXED: Added title and message
+        showNotification("Session Complete!", "Great job! You earned 50 XP.");
     }
 
-    await chrome.local.storage.local.set({pokedata : {...result.pokedata, stats}});
+    // FIXED: Corrected storage path
+    await chrome.storage.local.set({ pokedata: { ...result.pokedata, stats } });
 }
 
-function showNotification(title,message) {
+// 5. Helper Function
+function showNotification(title, message) {
     chrome.notifications.create({
         type: "basic",
-        iconUrl: "src/assets/icon.jpg",
+        iconUrl: "src/assets/icon.jpg", 
         title: title,
         message: message,
         priority: 2
