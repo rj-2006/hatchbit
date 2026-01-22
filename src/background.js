@@ -26,9 +26,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Create the alarm
         chrome.alarms.create("pomotimer", { delayInMinutes: message.minutes });
         console.log(`Timer started for ${message.minutes} minutes.`);
+        let time = message.minutes;
         
         // Let the React UI know we succeeded
         sendResponse({ status: "timer_start" });
+    }
+    if (message.command == "pauseTimer"){
+        timeleft = time - message.minutes;
+        // kept track of time left
+    }
+    if (message.command == "resumeTimer"){
+        // start the timer with timeleft
+        chrome.alarms.create("pomotimer", {delayInMinutes: timeleft.minutes });
+        console.log(`Timer resumed for ${timeleft.minutes} minutes.`);
+    }
+    if (message.command == "cancelTimer"){
+        // cancel timer logic
     }
     // Required for async sendResponse
     return true; 
