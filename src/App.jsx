@@ -1,346 +1,297 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Star, Sun, Moon, ShoppingBag } from 'lucide-react';
-import PokemonSelector from '../integration/PokemonSelector';
-import Shop from './Shop';
-import { POKEMON_THEMES } from './constants/themes';
+import './App.css'
+import { useState, useEffect } from 'react'
+import { Play, Pause, RotateCcw, Sun, Moon, ShoppingBag } from 'lucide-react'
+import PokemonSelector from './PokemonSelector'
+import Shop            from './Shop'
+import {
+  POKEMON,
+  STARTER_IDS,
+  POMODORO_SECONDS,
+  XP_PER_SESSION,
+  calcXPForLevel,
+} from './constants/themes'
 
-const POMODORO_DURATION = 25 * 60; // 25 minutes in seconds
-
-function PomodoroTimer() {
-  const [selectedPokemon, setSelectedPokemon] = useState(null);
-  const [timerState, setTimerState] = useState('idle');
-  const [timeRemaining, setTimeRemaining] = useState(POMODORO_DURATION);
-  const [level, setLevel] = useState(1);
-  const [xp, setXp] = useState(0);
-  const [xpForNextLevel, setXpForNextLevel] = useState(100);
-  const [apricorns, setApricorns] = useState(0);
-  const [ownedPokemon, setOwnedPokemon] = useState([]);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showShop, setShowShop] = useState(false);
-
-  // Load saved data
-  useEffect(() => {
-    const savedPokemon = localStorage.getItem('selectedPokemon');
-    const savedLevel = parseInt(localStorage.getItem('level') || '1');
-    const savedXP = parseInt(localStorage.getItem('xp') || '0');
-    const savedApricorns = parseInt(localStorage.getItem('apricorns') || '0');
-    const savedOwnedPokemon = JSON.parse(localStorage.getItem('ownedPokemon') || '["pikachu","bulbasaur","charmander","squirtle"]');
-    const savedTimerState = localStorage.getItem('timerState') || 'idle';
-    const savedTimeRemaining = parseInt(localStorage.getItem('timeRemaining') || POMODORO_DURATION);
-    const savedDarkMode = localStorage.getItem('isDarkMode') === 'true';
-
-    if (savedPokemon && savedOwnedPokemon.includes(savedPokemon)) {
-      setSelectedPokemon(savedPokemon);
-    }
-    setLevel(savedLevel);
-    setXp(savedXP);
-    setApricorns(savedApricorns);
-    setOwnedPokemon(savedOwnedPokemon);
-    setXpForNextLevel(calculateXPForLevel(savedLevel + 1));
-    setTimerState(savedTimerState);
-    setTimeRemaining(savedTimeRemaining);
-    setIsDarkMode(savedDarkMode);
-  }, []);
-
-  // Timer logic
-  useEffect(() => {
-    let interval;
-    
-    if (timerState === 'running' && timeRemaining > 0) {
-      interval = setInterval(() => {
-        setTimeRemaining(prev => {
-          const newTime = prev - 1;
-          localStorage.setItem('timeRemaining', newTime);
-          
-          if (newTime === 0) {
-            handleSessionComplete();
-            return POMODORO_DURATION;
-          }
-          
-          return newTime;
-        });
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [timerState, timeRemaining]);
-
-  // Calculate XP needed for a level
-  const calculateXPForLevel = (lvl) => {
-    return Math.floor(100 * Math.pow(1.75, lvl - 1));
-  };
-
-  // Handle session completion
-  const handleSessionComplete = () => {
-    const newXP = xp + 50;
-    let newLevel = level;
-    let newXPForNextLevel = xpForNextLevel;
-    let newApricorns = apricorns;
-
-    // Check for level up
-    if (newXP >= xpForNextLevel) {
-      newLevel = level + 1;
-      newXPForNextLevel = calculateXPForLevel(newLevel + 1);
-      newApricorns = apricorns + 50; // Award 50 Apricorns per level up
-      
-      showNotification('Level Up!', `${POKEMON_THEMES[selectedPokemon].name} reached level ${newLevel}! You earned 50 Apricorns! 🎉`);
-    } else {
-      showNotification('Session Complete!', 'Great work! You earned 50 XP! ⚡');
-    }
-
-    setXp(newXP);
-    setLevel(newLevel);
-    setXpForNextLevel(newXPForNextLevel);
-    setApricorns(newApricorns);
-    setTimerState('idle');
-    
-    localStorage.setItem('xp', newXP);
-    localStorage.setItem('level', newLevel);
-    localStorage.setItem('apricorns', newApricorns);
-    localStorage.setItem('timerState', 'idle');
-  };
-
-  // Show browser notification
-  const showNotification = (title, message) => {
-    console.log('Notification:', title, message);
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, { body: message });
-    } else {
-      alert(`${title}\n${message}`);
-    }
-  };
-
-  // Timer controls
-  const startTimer = () => {
-    setTimerState('running');
-    localStorage.setItem('timerState', 'running');
-  };
-
-  const pauseTimer = () => {
-    setTimerState('paused');
-    localStorage.setItem('timerState', 'paused');
-  };
-
-  const resumeTimer = () => {
-    setTimerState('running');
-    localStorage.setItem('timerState', 'running');
-  };
-
-  const cancelTimer = () => {
-    setTimerState('idle');
-    setTimeRemaining(POMODORO_DURATION);
-    localStorage.setItem('timerState', 'idle');
-    localStorage.setItem('timeRemaining', POMODORO_DURATION);
-  };
-
-  // Handle Pokemon selection
-  const handlePokemonSelect = (pokemon) => {
-    setSelectedPokemon(pokemon);
-    localStorage.setItem('selectedPokemon', pokemon);
-  };
-
-  // Handle Pokemon purchase
-  const handlePokemonPurchase = (pokemonId) => {
-    const pokemon = POKEMON_THEMES[pokemonId];
-    if (apricorns >= pokemon.price && !ownedPokemon.includes(pokemonId)) {
-      const newApricorns = apricorns - pokemon.price;
-      const newOwnedPokemon = [...ownedPokemon, pokemonId];
-      
-      setApricorns(newApricorns);
-      setOwnedPokemon(newOwnedPokemon);
-      
-      localStorage.setItem('apricorns', newApricorns);
-      localStorage.setItem('ownedPokemon', JSON.stringify(newOwnedPokemon));
-      
-      alert(`You purchased ${pokemon.name}! 🎉`);
-    }
-  };
-
-  // Toggle dark mode
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    localStorage.setItem('isDarkMode', newMode);
-  };
-
-  // Format time display
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Calculate XP percentage
-  const xpPercentage = ((xp % xpForNextLevel) / xpForNextLevel) * 100;
-
-  if (!selectedPokemon) {
-    return <PokemonSelector onSelect={handlePokemonSelect} isDarkMode={isDarkMode} ownedPokemon={ownedPokemon} />;
-  }
-
-  const theme = POKEMON_THEMES[selectedPokemon];
-  const mode = isDarkMode ? theme.dark : theme.light;
-  const Icon = theme.icon;
-
+// ─── Pokeball SVG (exported so Selector & Shop can reuse) ─
+export function Pokeball({ size = 64, color = "#fff", shadow = "#ccc" }) {
   return (
-    <>
-      <div className={`min-h-screen bg-gradient-to-br ${mode.gradient} flex items-center justify-center p-4`}>
-        <div className={`${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'} rounded-2xl shadow-2xl p-8 max-w-md w-full relative`}>
-          {/* Dark Mode & Shop Toggles */}
-          <div className="absolute top-4 right-4 flex gap-2">
-            <button
-              onClick={() => setShowShop(true)}
-              className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-              aria-label="Open shop"
-            >
-              <ShoppingBag className={`w-5 h-5 ${mode.text}`} />
-            </button>
-            <button
-              onClick={toggleDarkMode}
-              className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-              aria-label="Toggle dark mode"
-            >
-              {isDarkMode ? (
-                <Sun className={`w-5 h-5 ${mode.text}`} />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-700" />
-              )}
-            </button>
-          </div>
-
-          {/* Header */}
-          <div className="text-center mb-6">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Icon className={`w-8 h-8 ${mode.text}`} />
-              <h1 className={`text-2xl font-bold ${mode.text}`}>{theme.name}</h1>
-            </div>
-            <div className={`flex items-center justify-center gap-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <div className="flex items-center gap-1">
-                <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                <span className="font-semibold">Level {level}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-orange-400 to-red-500" />
-                <span className="font-semibold">{apricorns}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* XP Bar */}
-          <div className="mb-6">
-            <div className={`flex justify-between text-sm mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <span>XP: {xp}</span>
-              <span>Next: {xpForNextLevel}</span>
-            </div>
-            <div className={`w-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full h-3 overflow-hidden`}>
-              <div 
-                className={`h-full bg-gradient-to-r ${mode.gradient} transition-all duration-500`}
-                style={{ width: `${xpPercentage}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Timer Display */}
-          <div className="text-center mb-8">
-            <div className={`text-6xl font-bold mb-2 bg-gradient-to-r ${mode.gradient} bg-clip-text text-transparent`}>
-              {formatTime(timeRemaining)}
-            </div>
-            <p className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
-              {timerState === 'idle' && 'Ready to focus'}
-              {timerState === 'running' && 'Stay focused!'}
-              {timerState === 'paused' && 'Paused'}
-            </p>
-          </div>
-
-          {/* Control Buttons */}
-          <div className="flex gap-3 justify-center">
-            {timerState === 'idle' && (
-              <button
-                onClick={startTimer}
-                className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${mode.gradient} text-white rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg`}
-              >
-                <Play className="w-5 h-5" />
-                Start Session
-              </button>
-            )}
-
-            {timerState === 'running' && (
-              <>
-                <button
-                  onClick={pauseTimer}
-                  className={`flex items-center gap-2 px-6 py-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-600 hover:bg-gray-700'} text-white rounded-lg font-semibold transition-colors shadow-lg`}
-                >
-                  <Pause className="w-5 h-5" />
-                  Pause
-                </button>
-                <button
-                  onClick={cancelTimer}
-                  className="flex items-center gap-2 px-4 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors shadow-lg"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                </button>
-              </>
-            )}
-
-            {timerState === 'paused' && (
-              <>
-                <button
-                  onClick={resumeTimer}
-                  className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${mode.gradient} text-white rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg`}
-                >
-                  <Play className="w-5 h-5" />
-                  Resume
-                </button>
-                <button
-                  onClick={cancelTimer}
-                  className="flex items-center gap-2 px-4 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors shadow-lg"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Stats */}
-          <div className={`mt-6 pt-6 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} border-t`}>
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div>
-                <p className={`text-2xl font-bold ${mode.text}`}>{Math.floor(xp / 50)}</p>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Sessions</p>
-              </div>
-              <div>
-                <p className={`text-2xl font-bold ${mode.text}`}>{level}</p>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Level</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Change Pokemon */}
-          <button
-            onClick={() => {
-              setSelectedPokemon(null);
-              localStorage.removeItem('selectedPokemon');
-            }}
-            className={`w-full mt-4 text-sm ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
-          >
-            Change Pokemon Partner
-          </button>
-        </div>
-      </div>
-
-      {/* Shop Modal */}
-      {showShop && (
-        <Shop
-          onClose={() => setShowShop(false)}
-          isDarkMode={isDarkMode}
-          apricorns={apricorns}
-          ownedPokemon={ownedPokemon}
-          onPurchase={handlePokemonPurchase}
-        />
-      )}
-    </>
-  );
+    <svg width={size} height={size} viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="48" fill={color} stroke={shadow} strokeWidth="4" />
+      <path d="M2 50 h96" stroke={shadow} strokeWidth="4" fill="none" />
+      <path d="M50 2 a48 48 0 0 1 0 96" fill={shadow} opacity="0.15" />
+      <circle cx="50" cy="50" r="12" fill="#fff" stroke={shadow} strokeWidth="3" />
+      <circle cx="50" cy="50" r="5"  fill={shadow} />
+      <rect x="38" y="48" width="24" height="4" rx="2" fill={shadow} />
+    </svg>
+  )
 }
 
+// ─── Faint pokeballs floating in the gradient banner ──────
+function BgPokeballs({ colors }) {
+  const balls = [
+    { top: "-18%", left: "-6%",  size: 110 },
+    { top: "-8%",  right: "-8%", size: 80  },
+    { bottom: "-20%", right: "8%", size: 95  },
+  ]
+  return balls.map((b, i) => (
+    <div key={i} className="absolute pointer-events-none" style={{ ...b, opacity: 0.08 }}>
+      <Pokeball size={b.size} color={colors[1]} shadow={colors[2]} />
+    </div>
+  ))
+}
+
+// ─── Circular progress timer ──────────────────────────────
+function CircularTimer({ timeRemaining, timerState, colors }) {
+  const R      = 68
+  const CIRC   = 2 * Math.PI * R
+  const pct    = timeRemaining / POMODORO_SECONDS
+  const offset = CIRC * (1 - pct)
+  const mm     = String(Math.floor(timeRemaining / 60)).padStart(2, "0")
+  const ss     = String(timeRemaining % 60).padStart(2, "0")
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: 164, height: 164 }}>
+      <svg width="164" height="164" className="absolute inset-0" style={{ transform: "rotate(-90deg)" }}>
+        <circle cx="82" cy="82" r={R} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="9" />
+        <circle cx="82" cy="82" r={R} fill="none" stroke={colors[1]} strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={CIRC}
+          strokeDashoffset={offset}
+          className="timer-glow"
+          style={{ transition: "stroke-dashoffset 0.6s ease", color: colors[1] }}
+        />
+      </svg>
+      <div className="relative z-10 flex flex-col items-center">
+        <span className="text-3xl font-bold tracking-tight" style={{ color: colors[2] }}>{mm}:{ss}</span>
+        <span className="text-xs font-semibold uppercase tracking-widest opacity-55 mt-0.5" style={{ color: colors[2] }}>
+          {timerState === "idle"    && "Ready"}
+          {timerState === "running" && "Focus"}
+          {timerState === "paused"  && "Paused"}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ─── XP progress bar ──────────────────────────────────────
+function XPBar({ xp, xpNeeded, level, colors, isDark }) {
+  const pct = Math.min((xp % xpNeeded) / xpNeeded * 100, 100)
+  return (
+    <div className="w-full">
+      <div className="flex justify-between text-xs font-semibold mb-1" style={{ color: isDark ? "#9CA3AF" : "#6B7280" }}>
+        <span>⭐ Lv.{level}</span>
+        <span>{xp % xpNeeded} / {xpNeeded} XP</span>
+      </div>
+      <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: isDark ? "#374151" : "#E5E7EB" }}>
+        <div
+          className="h-full rounded-full xp-shimmer transition-all duration-500"
+          style={{
+            width: `${pct}%`,
+            backgroundImage: `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[0]}, ${colors[1]})`,
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ─── Small stat card ──────────────────────────────────────
+function StatCard({ label, value, color, isDark }) {
+  return (
+    <div className="flex-1 rounded-xl p-2.5 text-center shadow-sm"
+      style={{ background: isDark ? "#111827" : "#F9FAFB", border: `1px solid ${isDark ? "#374151" : "#E5E7EB"}` }}>
+      <p className="text-base font-bold" style={{ color }}>{value}</p>
+      <p className="text-xs" style={{ color: isDark ? "#6B7280" : "#9CA3AF" }}>{label}</p>
+    </div>
+  )
+}
+
+// ──────────────────────────────────────────────────────────
+// APP – popup shell.  All state lives in background.js.
+//       This file only READS state and SENDS commands.
+// ──────────────────────────────────────────────────────────
 export default function App() {
-  return <PomodoroTimer />;
+  const [screen, setScreen]             = useState("select")
+  const [selected, setSelected]         = useState(null)
+  const [timerState, setTimerState]     = useState("idle")
+  const [timeLeft, setTimeLeft]         = useState(POMODORO_SECONDS)
+  const [level, setLevel]               = useState(1)
+  const [xp, setXp]                     = useState(0)
+  const [apricorns, setApricorns]       = useState(0)
+  const [ownedPokemon, setOwnedPokemon] = useState(STARTER_IDS)
+  const [isDark, setIsDark]             = useState(false)
+
+  // ── 1. On mount: ask background for the full state ─────
+  useEffect(() => {
+    chrome.runtime.sendMessage({ type: "getState" }, (res) => {
+      if (!res) return
+      applyState(res)
+    })
+  }, [])
+
+  // ── 2. While popup is open: listen for live ticks ──────
+  useEffect(() => {
+    const listener = (msg) => {
+      if (msg.type === "stateUpdate") applyState(msg)
+    }
+    chrome.runtime.onMessage.addListener(listener)
+    return () => chrome.runtime.onMessage.removeListener(listener)
+  }, [])
+
+  // ── 3. isDark is local-only (no background needed) ─────
+  useEffect(() => {
+    const saved = localStorage.getItem("isDark")
+    if (saved !== null) setIsDark(JSON.parse(saved))
+  }, [])
+  useEffect(() => {
+    localStorage.setItem("isDark", JSON.stringify(isDark))
+  }, [isDark])
+
+  // ── hydrate UI from a state blob (from bg or tick) ─────
+  function applyState(s) {
+    setSelected(s.selected)
+    setScreen(s.selected ? "timer" : "select")
+    setTimerState(s.timerState  ?? "idle")
+    setTimeLeft(s.timeLeft      ?? POMODORO_SECONDS)
+    setLevel(s.level            ?? 1)
+    setXp(s.xp                  ?? 0)
+    setApricorns(s.apricorns    ?? 0)
+    setOwnedPokemon(s.ownedPokemon ?? STARTER_IDS)
+  }
+
+  // ── commands → background ───────────────────────────────
+  const start  = () => chrome.runtime.sendMessage({ type: "start" },  () => {})
+  const pause  = () => chrome.runtime.sendMessage({ type: "pause" },  () => {})
+  const cancel = () => chrome.runtime.sendMessage({ type: "cancel" }, () => {})
+
+  const selectPokemon = (id) => {
+    chrome.runtime.sendMessage({ type: "selectPokemon", id })
+    setSelected(id)
+    setScreen("timer")
+  }
+
+  const purchasePokemon = (id) => {
+    chrome.runtime.sendMessage({ type: "purchase", id }, (res) => {
+      if (res?.ok) {
+        // optimistic local update; next tick will confirm from bg
+        setApricorns(a => a - POKEMON[id].price)
+        setOwnedPokemon(o => [...o, id])
+      }
+    })
+  }
+
+  // ── derived ─────────────────────────────────────────────
+  const theme    = selected ? POKEMON[selected] : null
+  const colors   = theme ? theme.colors[isDark ? "dark" : "light"] : ["#A78BFA", "#7C3AED", "#5B21B6"]
+  const xpNeeded = calcXPForLevel(level + 1)
+
+  // ── render ──────────────────────────────────────────────
+  return (
+    <div className="flex items-center justify-center min-h-screen" style={{ background: isDark ? "#111827" : "#F3F4F6" }}>
+      <div className="relative w-96 rounded-3xl overflow-hidden shadow-2xl" style={{ background: isDark ? "#1F2937" : "#fff" }}>
+
+        {/* ════════ GRADIENT BANNER ════════ */}
+        <div className="relative h-32 flex items-end px-5 pb-3" style={{ background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]}, ${colors[2]})` }}>
+          <BgPokeballs colors={colors} />
+
+          {/* top bar icons */}
+          <div className="absolute top-3 left-0 right-0 flex justify-between px-5 z-10">
+            <button onClick={() => setIsDark(d => !d)} className="p-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }}>
+              {isDark ? <Sun className="w-4 h-4 text-white" /> : <Moon className="w-4 h-4 text-white" />}
+            </button>
+            {screen === "timer" && (
+              <button onClick={() => setScreen("shop")} className="p-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }}>
+                <ShoppingBag className="w-4 h-4 text-white" />
+              </button>
+            )}
+          </div>
+
+          {/* banner label */}
+          <div className="relative z-10 flex items-center gap-3">
+            {screen === "timer" && theme ? (
+              <>
+                <div className="w-11 h-11 rounded-full flex items-center justify-center border-2 border-white border-opacity-40" style={{ background: "rgba(255,255,255,0.15)" }}>
+                  <Pokeball size={28} color="#fff" shadow={colors[2]} />
+                </div>
+                <div>
+                  <h1 className="text-white font-bold text-base drop-shadow">{theme.name}</h1>
+                  <span className="text-xs text-white opacity-75">⭐ Lv.{level} · 🍎 {apricorns}</span>
+                </div>
+              </>
+            ) : (
+              <h1 className="text-white font-bold text-base drop-shadow">
+                {screen === "shop" ? "🛍️ Pokebit Shop" : "🎮 Pokebit"}
+              </h1>
+            )}
+          </div>
+        </div>
+
+        {/* ════════ BODY ════════ */}
+        <div>
+          {/* ─── TIMER ─── */}
+          {screen === "timer" && theme && (
+            <div className="flex flex-col items-center gap-4 px-5 py-5">
+              <div className="w-full">
+                <XPBar xp={xp} xpNeeded={xpNeeded} level={level} colors={colors} isDark={isDark} />
+              </div>
+
+              <CircularTimer timeRemaining={timeLeft} timerState={timerState} colors={colors} />
+
+              {/* controls */}
+              <div className="flex items-center gap-3">
+                {timerState === "idle" && (
+                  <button onClick={start} className="flex items-center gap-2 px-6 py-2.5 rounded-full text-white font-bold shadow-lg transition-transform hover:scale-105"
+                    style={{ background: `linear-gradient(135deg, ${colors[1]}, ${colors[2]})` }}>
+                    <Play className="w-4 h-4" /> Start
+                  </button>
+                )}
+                {timerState === "running" && (
+                  <>
+                    <button onClick={pause} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-bold shadow-lg"
+                      style={{ background: isDark ? "#374151" : "#4B5563" }}>
+                      <Pause className="w-4 h-4" /> Pause
+                    </button>
+                    <button onClick={cancel} className="p-2.5 rounded-full text-white shadow-lg" style={{ background: "#EF4444" }}>
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+                {timerState === "paused" && (
+                  <>
+                    <button onClick={start} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-bold shadow-lg"
+                      style={{ background: `linear-gradient(135deg, ${colors[1]}, ${colors[2]})` }}>
+                      <Play className="w-4 h-4" /> Resume
+                    </button>
+                    <button onClick={cancel} className="p-2.5 rounded-full text-white shadow-lg" style={{ background: "#EF4444" }}>
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* stats */}
+              <div className="w-full flex gap-2.5 mt-1">
+                <StatCard label="Sessions"  value={Math.floor(xp / XP_PER_SESSION)} color={colors[2]} isDark={isDark} />
+                <StatCard label="Level"     value={level}                           color={colors[2]} isDark={isDark} />
+                <StatCard label="Apricorns" value={apricorns}                       color={colors[2]} isDark={isDark} />
+              </div>
+
+              <button onClick={() => setScreen("select")} className="text-xs underline underline-offset-2 mt-0.5" style={{ color: isDark ? "#6B7280" : "#9CA3AF" }}>
+                Change Partner
+              </button>
+            </div>
+          )}
+
+          {/* ─── SELECTOR ─── */}
+          {screen === "select" && (
+            <PokemonSelector isDark={isDark} ownedPokemon={ownedPokemon} onSelect={selectPokemon} />
+          )}
+
+          {/* ─── SHOP ─── */}
+          {screen === "shop" && (
+            <Shop isDark={isDark} apricorns={apricorns} ownedPokemon={ownedPokemon} onPurchase={purchasePokemon} onBack={() => setScreen("timer")} />
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }

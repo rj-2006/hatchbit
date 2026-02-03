@@ -1,181 +1,111 @@
-import React, { useState, useEffect } from 'react';
-import { X, ShoppingBag, Lock, Check } from 'lucide-react';
-import { POKEMON_THEMES, SHOP_POKEMON } from './constants/themes';
+import { ArrowLeft, Lock, Check } from 'lucide-react'
+import { Pokeball } from './App.jsx'
+import { POKEMON, SHOP_IDS, TYPE_COLORS } from './constants/themes'
 
-function Shop({ onClose, isDarkMode, apricorns, ownedPokemon, onPurchase }) {
-  const [selectedTab, setSelectedTab] = useState('pokemon');
-
-  const handlePurchase = (pokemonId, price) => {
-    if (apricorns >= price && !ownedPokemon.includes(pokemonId)) {
-      onPurchase(pokemonId);
-    }
-  };
-
+export default function Shop({ isDark, apricorns, ownedPokemon, onPurchase, onBack }) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className={`${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'} rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col`}>
-        {/* Header */}
-        <div className={`p-6 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} border-b flex justify-between items-center`}>
-          <div className="flex items-center gap-3">
-            <ShoppingBag className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`} />
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-              Pokebit Shop
-            </h2>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Apricorn Balance */}
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-orange-100'}`}>
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-orange-400 to-red-500" />
-              <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-orange-900'}`}>
-                {apricorns}
-              </span>
-            </div>
-            <button
-              onClick={onClose}
-              className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
-            >
-              <X className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`} />
-            </button>
-          </div>
-        </div>
+    <div className="flex flex-col px-5 py-4 gap-4">
+      {/* ── Header row ── */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1 text-sm font-semibold transition-colors hover:opacity-70"
+          style={{ color: isDark ? "#9CA3AF" : "#6B7280" }}
+        >
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
 
-        {/* Tabs */}
-        <div className={`flex ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} px-6 gap-4`}>
-          <button
-            onClick={() => setSelectedTab('pokemon')}
-            className={`px-4 py-3 font-semibold transition-colors border-b-2 ${
-              selectedTab === 'pokemon'
-                ? isDarkMode
-                  ? 'border-blue-400 text-blue-400'
-                  : 'border-blue-500 text-blue-600'
-                : isDarkMode
-                  ? 'border-transparent text-gray-400 hover:text-gray-200'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Pokemon
-          </button>
-          <button
-            onClick={() => setSelectedTab('items')}
-            className={`px-4 py-3 font-semibold transition-colors border-b-2 ${
-              selectedTab === 'items'
-                ? isDarkMode
-                  ? 'border-blue-400 text-blue-400'
-                  : 'border-blue-500 text-blue-600'
-                : isDarkMode
-                  ? 'border-transparent text-gray-400 hover:text-gray-200'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Items
-            <span className="ml-2 text-xs opacity-50">(Coming Soon)</span>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {selectedTab === 'pokemon' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {SHOP_POKEMON.map((pokemonId) => {
-                const pokemon = POKEMON_THEMES[pokemonId];
-                const Icon = pokemon.icon;
-                const theme = isDarkMode ? pokemon.dark : pokemon.light;
-                const isOwned = ownedPokemon.includes(pokemonId);
-                const canPurchase = apricorns >= pokemon.price && !isOwned;
-
-                return (
-                  <div
-                    key={pokemonId}
-                    className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} border-2 ${
-                      isOwned
-                        ? 'border-green-500'
-                        : isDarkMode
-                          ? 'border-gray-600'
-                          : 'border-gray-200'
-                    }`}
-                  >
-                    {/* Pokemon Header */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className={`p-2 rounded-lg bg-gradient-to-br ${theme.gradient}`}>
-                          <Icon className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                            {pokemon.name}
-                          </h3>
-                          <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {pokemon.type} Type
-                          </p>
-                        </div>
-                      </div>
-                      {isOwned && (
-                        <div className="bg-green-500 rounded-full p-1">
-                          <Check className="w-4 h-4 text-white" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Price */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-orange-400 to-red-500" />
-                        <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                          {pokemon.price}
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={() => handlePurchase(pokemonId, pokemon.price)}
-                        disabled={!canPurchase}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                          isOwned
-                            ? isDarkMode
-                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            : canPurchase
-                              ? `bg-gradient-to-r ${theme.gradient} text-white hover:opacity-90`
-                              : isDarkMode
-                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
-                        {isOwned ? (
-                          'Owned'
-                        ) : canPurchase ? (
-                          'Purchase'
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <Lock className="w-4 h-4" />
-                            <span>Locked</span>
-                          </div>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {selectedTab === 'items' && (
-            <div className={`text-center py-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              <ShoppingBag className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-semibold">Items Coming Soon!</p>
-              <p className="text-sm mt-2">Stay tuned for decorations and power-ups!</p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className={`p-4 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'} border-t`}>
-          <p className={`text-sm text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            💡 Earn {50} Apricorns every time you level up!
-          </p>
+        {/* Apricorn balance pill */}
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ background: isDark ? "#374151" : "#FEF3C7" }}>
+          <span className="text-sm">🍎</span>
+          <span className="text-sm font-bold" style={{ color: isDark ? "#FCD34D" : "#92400E" }}>{apricorns}</span>
         </div>
       </div>
-    </div>
-  );
-}
 
-export default Shop;
+      {/* ── Title ── */}
+      <div className="text-center">
+        <h2 className="text-base font-bold" style={{ color: isDark ? "#fff" : "#1F2937" }}>Pokebit Shop</h2>
+        <p className="text-xs" style={{ color: isDark ? "#6B7280" : "#9CA3AF" }}>Catch new partners with Apricorns</p>
+      </div>
+
+      {/* ── Pokemon list ── */}
+      <div className="flex flex-col gap-3">
+        {SHOP_IDS.map(id => {
+          const pokemon  = POKEMON[id]
+          const isOwned  = ownedPokemon.includes(id)
+          const canBuy   = !isOwned && apricorns >= pokemon.price
+          const c        = pokemon.colors[isDark ? "dark" : "light"]
+
+          return (
+            <div
+              key={id}
+              className="relative rounded-xl overflow-hidden"
+              style={{
+                border: `2px solid ${isOwned ? "#22C55E" : isDark ? "#374151" : "#E5E7EB"}`,
+                background: isDark ? "#1F2937" : "#fff",
+              }}
+            >
+              {/* Owned badge */}
+              {isOwned && (
+                <div className="absolute top-2 right-2 flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: "#22C55E" }}>
+                  <Check className="w-3 h-3" /> Owned
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 p-3">
+                {/* Pokeball icon circle */}
+                <div
+                  className="flex-shrink-0 w-13 h-13 rounded-full flex items-center justify-center shadow-inner"
+                  style={{ background: `linear-gradient(135deg, ${c[0]}, ${c[1]})`, width: 52, height: 52 }}
+                >
+                  <Pokeball size={32} color="#fff" shadow={c[2]} />
+                </div>
+
+                {/* Name + type + price */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-sm" style={{ color: isDark ? "#fff" : "#1F2937" }}>{pokemon.name}</span>
+                    <span className="text-xs font-semibold px-2 py-0.25 rounded-full text-white" style={{ background: TYPE_COLORS[pokemon.type] }}>
+                      {pokemon.type}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="text-xs">🍎</span>
+                    <span className="text-xs font-bold" style={{ color: isDark ? "#FCD34D" : "#92400E" }}>{pokemon.price} Apricorns</span>
+                  </div>
+                </div>
+
+                {/* Buy / Owned / Locked button */}
+                {!isOwned && (
+                  <button
+                    onClick={() => canBuy && onPurchase(id)}
+                    disabled={!canBuy}
+                    className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity"
+                    style={{
+                      background: canBuy ? `linear-gradient(135deg, ${c[0]}, ${c[1]})` : isDark ? "#374151" : "#F3F4F6",
+                      color:      canBuy ? "#fff" : isDark ? "#6B7280" : "#9CA3AF",
+                      cursor:     canBuy ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    {canBuy ? (
+                      "Catch!"
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> Need more
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── Footer tip ── */}
+      <div className="rounded-lg p-3 text-center text-xs mt-1" style={{ background: isDark ? "#111827" : "#F9FAFB", color: isDark ? "#9CA3AF" : "#6B7280" }}>
+        💡 Level up your Pokemon to earn <strong>50 Apricorns</strong> each time!
+      </div>
+    </div>
+  )
+}

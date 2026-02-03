@@ -1,154 +1,93 @@
-import { Zap, Leaf, Flame, Droplet } from 'lucide-react';
+// ─── Pokemon master data ──────────────────────────────────
+// price: 0 = starter (free). Anything above = Apricorn cost.
+// colors: [highlight, primary, deep] used for gradients, rings, badges.
 
-export const POKEMON_THEMES = {
+export const POKEMON = {
   pikachu: {
-    name: 'Pikachu',
-    price: 0, // Starter Pokemon (free)
-    light: {
-      gradient: 'from-yellow-300 via-yellow-400 to-amber-500',
-      bg: 'bg-yellow-50',
-      text: 'text-yellow-900',
-      accent: 'bg-yellow-400',
-      border: 'border-yellow-400'
+    name: "Pikachu",
+    type: "Electric",
+    price: 0,
+    colors: {
+      light: ["#FEF08A", "#FACC15", "#CA8A04"],
+      dark:  ["#78350F", "#B45309", "#FCD34D"],
     },
-    dark: {
-      gradient: 'from-yellow-600 via-amber-700 to-yellow-800',
-      bg: 'bg-gray-900',
-      text: 'text-yellow-100',
-      accent: 'bg-yellow-600',
-      border: 'border-yellow-600'
-    },
-    icon: Zap,
-    type: 'Electric'
   },
   bulbasaur: {
-    name: 'Bulbasaur',
-    price: 0, // Starter Pokemon (free)
-    light: {
-      gradient: 'from-green-300 via-teal-400 to-emerald-500',
-      bg: 'bg-green-50',
-      text: 'text-green-900',
-      accent: 'bg-green-400',
-      border: 'border-green-400'
+    name: "Bulbasaur",
+    type: "Grass",
+    price: 0,
+    colors: {
+      light: ["#BBF7D0", "#34D399", "#059669"],
+      dark:  ["#14532D", "#15803D", "#6EE7B7"],
     },
-    dark: {
-      gradient: 'from-green-700 via-teal-800 to-emerald-900',
-      bg: 'bg-gray-900',
-      text: 'text-green-100',
-      accent: 'bg-green-600',
-      border: 'border-green-600'
-    },
-    icon: Leaf,
-    type: 'Grass'
   },
   charmander: {
-    name: 'Charmander',
-    price: 0, // Starter Pokemon (free)
-    light: {
-      gradient: 'from-orange-300 via-red-400 to-rose-500',
-      bg: 'bg-orange-50',
-      text: 'text-orange-900',
-      accent: 'bg-orange-400',
-      border: 'border-orange-400'
+    name: "Charmander",
+    type: "Fire",
+    price: 0,
+    colors: {
+      light: ["#FED7AA", "#F97316", "#DC2626"],
+      dark:  ["#7C2D12", "#C2410C", "#FB923C"],
     },
-    dark: {
-      gradient: 'from-orange-700 via-red-800 to-rose-900',
-      bg: 'bg-gray-900',
-      text: 'text-orange-100',
-      accent: 'bg-orange-600',
-      border: 'border-orange-600'
-    },
-    icon: Flame,
-    type: 'Fire'
   },
   squirtle: {
-    name: 'Squirtle',
-    price: 0, // Starter Pokemon (free)
-    light: {
-      gradient: 'from-blue-300 via-cyan-400 to-blue-500',
-      bg: 'bg-blue-50',
-      text: 'text-blue-900',
-      accent: 'bg-blue-400',
-      border: 'border-blue-400'
+    name: "Squirtle",
+    type: "Water",
+    price: 0,
+    colors: {
+      light: ["#BFDBFE", "#38BDF8", "#2563EB"],
+      dark:  ["#1E3A5F", "#1D4ED8", "#7DD3FC"],
     },
-    dark: {
-      gradient: 'from-blue-700 via-cyan-800 to-blue-900',
-      bg: 'bg-gray-900',
-      text: 'text-blue-100',
-      accent: 'bg-blue-600',
-      border: 'border-blue-600'
-    },
-    icon: Droplet,
-    type: 'Water'
   },
-  // Shop Pokemon - Can be purchased with Apricorns
+
+  // ── Shop Pokemon ──────────────────────────────────────
   eevee: {
-    name: 'Eevee',
-    price: 500, // 500 Apricorns
-    light: {
-      gradient: 'from-amber-300 via-orange-400 to-yellow-500',
-      bg: 'bg-amber-50',
-      text: 'text-amber-900',
-      accent: 'bg-amber-400',
-      border: 'border-amber-400'
+    name: "Eevee",
+    type: "Normal",
+    price: 500,
+    colors: {
+      light: ["#FDE9C9", "#FDBA74", "#B45309"],
+      dark:  ["#451A03", "#92400E", "#FCD34D"],
     },
-    dark: {
-      gradient: 'from-amber-700 via-orange-800 to-yellow-900',
-      bg: 'bg-gray-900',
-      text: 'text-amber-100',
-      accent: 'bg-amber-600',
-      border: 'border-amber-600'
-    },
-    icon: Zap,
-    type: 'Normal'
   },
   jigglypuff: {
-    name: 'Jigglypuff',
-    price: 750, // 750 Apricorns
-    light: {
-      gradient: 'from-pink-300 via-pink-400 to-rose-500',
-      bg: 'bg-pink-50',
-      text: 'text-pink-900',
-      accent: 'bg-pink-400',
-      border: 'border-pink-400'
+    name: "Jigglypuff",
+    type: "Normal",
+    price: 750,
+    colors: {
+      light: ["#FBCFE8", "#F472B6", "#BE185D"],
+      dark:  ["#500724", "#BE123C", "#F9A8D4"],
     },
-    dark: {
-      gradient: 'from-pink-700 via-pink-800 to-rose-900',
-      bg: 'bg-gray-900',
-      text: 'text-pink-100',
-      accent: 'bg-pink-600',
-      border: 'border-pink-600'
-    },
-    icon: Zap,
-    type: 'Normal'
   },
   psyduck: {
-    name: 'Psyduck',
-    price: 1000, // 1000 Apricorns
-    light: {
-      gradient: 'from-yellow-300 via-amber-400 to-orange-500',
-      bg: 'bg-yellow-50',
-      text: 'text-yellow-900',
-      accent: 'bg-yellow-400',
-      border: 'border-yellow-400'
+    name: "Psyduck",
+    type: "Water",
+    price: 1000,
+    colors: {
+      light: ["#FEF08A", "#A3E635", "#4D7C0F"],
+      dark:  ["#1A2E05", "#4D7C0F", "#BEF264"],
     },
-    dark: {
-      gradient: 'from-yellow-700 via-amber-800 to-orange-900',
-      bg: 'bg-gray-900',
-      text: 'text-yellow-100',
-      accent: 'bg-yellow-600',
-      border: 'border-yellow-600'
-    },
-    icon: Droplet,
-    type: 'Water'
-  }
-};
+  },
+}
 
-// Starter Pokemon (free to choose)
-export const STARTER_POKEMON = ['pikachu', 'bulbasaur', 'charmander', 'squirtle'];
+// ─── Derived lists ────────────────────────────────────────
+export const STARTER_IDS = Object.keys(POKEMON).filter(id => POKEMON[id].price === 0)
+export const SHOP_IDS    = Object.keys(POKEMON).filter(id => POKEMON[id].price > 0)
 
-// Shop Pokemon (can be purchased)
-export const SHOP_POKEMON = ['eevee', 'jigglypuff', 'psyduck'];
+// ─── Type → badge color ───────────────────────────────────
+export const TYPE_COLORS = {
+  Electric: "#FACC15",
+  Grass:    "#34D399",
+  Fire:     "#F97316",
+  Water:    "#38BDF8",
+  Normal:   "#A3A3A3",
+}
 
-// Apricorn reward per level up
-export const APRICORNS_PER_LEVEL = 50;
+// ─── Reward constants ─────────────────────────────────────
+export const XP_PER_SESSION        = 50
+export const APRICORNS_PER_LEVELUP = 50
+export const POMODORO_SECONDS      = 25 * 60   // 25 min
+
+export function calcXPForLevel(lvl) {
+  return Math.floor(100 * Math.pow(1.75, lvl - 1))
+}

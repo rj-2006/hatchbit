@@ -1,22 +1,21 @@
 {
-    "manifest_version": 3,
-    "name": "Pokebit",
-    "version": "0.1",
-    "description": "Grow your team as you focus on studying!",
-    "icons": {
-        "48": "src/assets/icon.jpg"
-    },
-    "permissions": [
-        "alarms",
-        "storage",
-        "notifications"
-    ],
-    "action": {
-        "default_popup": "index.html",
-        "icon": "src/assets/icon.jpg"
-    },
-    "background": {
-        "service_worker": "src/background.js",
-        "type": "module"
-    }
+  "manifest_version": 3,
+  "name": "Pokebit",
+  "version": "0.1",
+  "description": "Grow your team as you focus on studying!",
+  "icons": {
+    "48": "src/assets/icon.jpg"
+  },
+  "permissions": [
+    "alarms",
+    "storage",
+    "notifications"
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "src/assets/icon.jpg"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
 }
